@@ -1,45 +1,7 @@
-import pandas as pd
-import streamlit as st
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
-import joblib  # untuk load model
+import joblib
 
-url2022 = 'https://docs.google.com/spreadsheets/d/1XL0qvZ4DHvYHw-BkS-sgSo7o4XpCFEzX/edit?gid=1562140668#gid=1562140668'
-df1 = url2022.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
-
-url2023 = 'https://docs.google.com/spreadsheets/d/1kyn-fxC10n01Uc3gwvkYdOaVfV5NteLT/edit?gid=1370236284#gid=1370236284'
-df2 = url2023.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
-
-url2024 = 'https://docs.google.com/spreadsheets/d/1Tth0hvft9Zo7Mcawb8Hvtp_ktisirNCi/edit?gid=249536995#gid=249536995'
-df3 = url2024.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
-
-df4 = pd.read_csv(df1)
-df5 = pd.read_csv(df2)
-df6 = pd.read_csv(df3)
-df = pd.concat([df4, df5, df6])
-
-# Gabungkan DIAGLIST dan PROCLIST sebagai fitur baru
-df['DIAG_PROCLIST'] = df['DIAGLIST'] + ',' + df['PROCLIST']
-df['INA_TARIF'] = df['INACBG'] + ',' + df['TARIF_INACBG'].astype(str) + ',' + df['DESKRIPSI_INACBG']
-
-# Encode fitur gabungan dan target
-le_diag_proc = LabelEncoder()
-le_inacbg = LabelEncoder()  # Sudah ada, tapi kita gunakan ulang
-
-X_full = le_diag_proc.fit_transform(df['DIAG_PROCLIST']).reshape(-1, 1)
-y_full = le_inacbg.fit_transform(df['INA_TARIF'])
-
-# Split data
-X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(X_full, y_full, test_size=0.2, random_state=42)
-
-# Train RandomForest
-rf_full = RandomForestClassifier(n_estimators=100, random_state=42)
-rf_full.fit(X_train_full, y_train_full)
-
-# Save the trained model before loading it
-joblib.dump(rf_full, 'rf0.pkl')
+# Load model yang sudah disimpan
+rf_full = joblib.load('rf0.pkl')
 
 st.title("Prediksi Kode INACBG")
 
