@@ -1,5 +1,6 @@
 import streamlit as st
 import joblib
+from sklearn.preprocessing import LabelEncoder
 
 # Load model yang sudah disimpan
 rf_full = joblib.load('rf0.pkl')
