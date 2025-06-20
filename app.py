@@ -4,6 +4,10 @@ import joblib
 # Load model yang sudah disimpan
 rf_full = joblib.load('rf0.pkl')
 
+# Encode fitur gabungan dan target
+le_diag_proc = LabelEncoder()
+le_inacbg = LabelEncoder()  # Sudah ada, tapi kita gunakan ulang
+
 st.title("Prediksi Kode INACBG")
 
 # Form input
