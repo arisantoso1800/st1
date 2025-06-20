@@ -1,10 +1,7 @@
 import pandas as pd
 import streamlit as st
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 import joblib  # untuk load model
@@ -14,14 +11,16 @@ df1 = url.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gi
 
 df = pd.read_csv(df1)
 
-df = df[['KELAS_RAWAT','DIAGLIST','INACBG']]
+# Gabungkan DIAGLIST dan PROCLIST sebagai fitur baru
+df['DIAG_PROCLIST'] = df['DIAGLIST'] + ',' + df['PROCLIST']
+df['INA_TARIF'] = df['INACBG'] + ',' + df['TARIF_INACBG'].astype(str) + ',' + df['DESKRIPSI_INACBG']
 
 # Encode fitur gabungan dan target
-le_diag = LabelEncoder()
-le_inacbg = LabelEncoder()
+le_diag_proc = LabelEncoder()
+le_inacbg = LabelEncoder()  # Sudah ada, tapi kita gunakan ulang
 
-X_full = le_diag.fit_transform(df['DIAGLIST']).reshape(-1, 1)
-y_full = le_inacbg.fit_transform(df['INACBG'])
+X_full = le_diag_proc.fit_transform(df['DIAG_PROCLIST']).reshape(-1, 1)
+y_full = le_inacbg.fit_transform(df['INA_TARIF'])
 
 # Split data
 X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(X_full, y_full, test_size=0.2, random_state=42)
@@ -31,13 +30,13 @@ rf_full = RandomForestClassifier(n_estimators=100, random_state=42)
 rf_full.fit(X_train_full, y_train_full)
 
 # Save the trained model before loading it
-joblib.dump(rf_full, 'rf.pkl')                  # Model machine learning       # TF-IDF atau CountVectorizer
+joblib.dump(rf_full, 'rf0.pkl')
 
 st.title("Prediksi Kode INACBG")
 
 # Form input
-kelas = st.selectbox("Kelas Rawat", [1, 2])
-diagnosa = st.text_input("Diagnosa (contoh: N18.5;J81;J80)")
+diagnosa = st.text_input("Diagnosa (contoh: A91;K30)")
+procedur = st.text_input("Prosedur (contoh: 99.18;99.29;90.59)")
 
 if st.button("Prediksi"):
     if diagnosa:
@@ -45,13 +44,28 @@ if st.button("Prediksi"):
         # Gabungkan fitur kelas rawat (numerik) + diagnosis (vektor teks)
         # input_data = pd.DataFrame([[kelas,diagnosa]], columns=['KELAS_RAWAT','DIAGLIST'])
         # sample_input = 'N18.5;J81;J80'
-        sample_input_encoded = le_diag.transform([diagnosa]).reshape(-1, 1)
+        sample_input = diagnosa + ',' + procedur
+        # sample_input_encoded = le_diag.transform([diagnosa]).reshape(-1, 1)
 
+        # predicted_inacbg = le_inacbg.inverse_transform(rf_full.predict(sample_input_encoded))
+        sample_input_encoded = le_diag_proc.transform([sample_input]).reshape(-1, 1)
         predicted_inacbg = le_inacbg.inverse_transform(rf_full.predict(sample_input_encoded))
+
+        predicted_inacbg_string = predicted_inacbg[0]
+        predicted_inacbg_parts = predicted_inacbg_string.split(',')
+        predicted_inacbg_code = predicted_inacbg_parts[0]
+        predicted_tarif_string = predicted_inacbg_parts[1]
+        predicted_deskripsi = predicted_inacbg_parts[2]
+
+        predicted_tarif_float = float(predicted_tarif_string)
+
+        tarif = f"Rp {int(predicted_tarif_float):,}".replace(",", ".")
 
         # Prediksi
         # pred = rf_full.predict(input_data)[0]
-        st.success(f"💡 Kode INACBG: {predicted_inacbg[0]}")
+        st.success(f"💡 Kode INACBG: {predicted_inacbg_code}")
+        st.write(f"💡 deskripsi INACBG : {predicted_deskripsi}")
+        st.write(f"💡 tarif INACBG : {tarif}")
         # st.success(f"💡 Kode INACBG: {diagnosa}")
     else:
         st.warning("Masukkan teks diagnosis terlebih dahulu.")
