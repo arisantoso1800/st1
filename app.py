@@ -6,10 +6,19 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 import joblib  # untuk load model
 
-url = 'https://docs.google.com/spreadsheets/d/14eZEx-7Gi7txnTR8IBz6qL4Ydll2ZoLj7dpnalF2574/edit?gid=0#gid=0'
-df1 = url.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
+url2022 = 'https://docs.google.com/spreadsheets/d/1XL0qvZ4DHvYHw-BkS-sgSo7o4XpCFEzX/edit?gid=1562140668#gid=1562140668'
+df1 = url2022.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
 
-df = pd.read_csv(df1)
+url2023 = 'https://docs.google.com/spreadsheets/d/1kyn-fxC10n01Uc3gwvkYdOaVfV5NteLT/edit?gid=1370236284#gid=1370236284'
+df2 = url2023.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
+
+url2024 = 'https://docs.google.com/spreadsheets/d/1Tth0hvft9Zo7Mcawb8Hvtp_ktisirNCi/edit?gid=249536995#gid=249536995'
+df3 = url2024.replace('/edit?gid=', '/export?format=csv&gid=').replace('#gid=', '&gid=')
+
+df4 = pd.read_csv(df1)
+df5 = pd.read_csv(df2)
+df6 = pd.read_csv(df3)
+df = pd.concat([df4, df5, df6])
 
 # Gabungkan DIAGLIST dan PROCLIST sebagai fitur baru
 df['DIAG_PROCLIST'] = df['DIAGLIST'] + ',' + df['PROCLIST']
