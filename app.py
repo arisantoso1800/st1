@@ -1,3 +1,4 @@
+import streamlit as st
 import joblib
 
 # Load model yang sudah disimpan
